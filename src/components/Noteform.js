@@ -1,6 +1,6 @@
-import React, {useState} from 'react'
+import React, { useState } from 'react'
 
-const Noteform = ({ createNote}) => {
+const Noteform = ({ createNote }) => {
   const [newNote, setNewNote] = useState('')
 
   const handleNoteChange = (event) => {
