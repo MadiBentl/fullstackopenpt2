@@ -5,11 +5,14 @@ import Noteform from './components/Noteform'
 import LoginForm from './components/LoginForm'
 import Togglable from './components/Togglable'
 import noteService from './services/note'
+import loginService from './services/login'
 
 const App = () => {
   const [notes, setNotes] = useState([])
   const [showAll, setShowAll] = useState(true)
   const [errorMessage, setErrorMessage] = useState(null)
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
   const [loginVisible, setLoginVisible] = useState(false)
 
@@ -41,26 +44,33 @@ const App = () => {
     const hideWhenVisible = { display: loginVisible ? 'none' : '' }
     const showWhenVisible = { display: loginVisible ? '' : 'none' }
     return(
-      <div>
-        <div style={hideWhenVisible}>
-          <button onClick = {() => setLoginVisible(true)}>log in</button>
-        </div>
-        <div style={showWhenVisible}>
+      <Togglable buttonLabel='login'>
           <LoginForm
-            handleUserLogin= {handleUserLogin}
-            setErrorMessage = {setErrorMessage}
+          username={username}
+          password={password}
+          handleUsernameChange={({ target }) => setUsername(target.value)}
+          handlePasswordChange={({ target }) => setPassword(target.value)}
+          handleSubmit={handleLogin}
           />
-          <button onClick={() => setLoginVisible(false)}>cancel</button>
-        </div>
-      </div>
+      </Togglable >
     )
   }
-  const handleUserLogin =  async () => {
-    try{
+  const handleLogin = async (event) => {
+    event.preventDefault()
+    try {
+      const user = await loginService.login({
+        username, password,
+      })
+
+      window.localStorage.setItem(
+        'loggedNoteappUser', JSON.stringify(user)
+      )
+
       noteService.setToken(user.token)
       setUser(user)
-    }
-    catch(exception){
+      setUsername('')
+      setPassword('')
+    } catch (exception) {
       setErrorMessage('wrong credentials')
       setTimeout(() => {
         setErrorMessage(null)
@@ -98,7 +108,7 @@ const App = () => {
       {user === null ?
         loginForm() :
         <div>
-          <p>{user.name} logged in </p>
+          <p>{user.username} has logged in </p>
         </div>}
       <Togglable buttonLabel={'Add New Note'} ref={noteFormRef}>
         <Noteform createNote={addNote}/>
